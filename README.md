@@ -1,202 +1,92 @@
-﻿# Machine-learning
-F1 Track Characteristics and Fastest Lap Time Analysis Project README
+# F1 Track Characteristics and Fastest Lap Time Analysis
 
-Project Overview
+## 📋 Project Overview
 
-This project aims to quantitatively analyze the impact of F1 track characteristics (such as corner distribution, straight ratio, DRS configuration, etc.) on the fastest lap time using machine learning techniques. The core objective is to clarify the correlation logic of "track characteristics → lap time" and generate data-supported analytical conclusions and visualization results.
+This project quantitatively analyzes the impact of F1 track characteristics on fastest lap times using machine learning techniques. Our goal is to establish clear correlations between track features (corner distribution, straight ratio, DRS configuration, etc.) and lap performance through data-driven analysis.
 
-Key Milestones:
+### 🎯 Key Milestones
 
-- November 26: Submit project introduction Slides
+| Date | Deliverable |
+|------|-------------|
+| **November 26** | Project Introduction Slides |
+| **December 10** | Complete Analysis Report |
+| **December 23** | Code Package + Demo Video |
 
-- December 10: Submit complete analysis report
+---
 
-- December 23: Submit code and demo video
+## 🔧 1. Core Description: Data Source & Tool Dependencies
 
-1. Core Description: Data Source & Tool Dependencies
+### 1.1 Data Source
 
-1.1 Data Source
+All track characteristics and fastest lap time data are extracted via the **`fastF1`** Python library, including:
+- Track geometric parameters
+- Telemetry information
+- Sector times for specified years
 
-All track characteristics (overall and sector-wise) and fastest lap time data are extracted via the `fastF1` Python library. The data includes track geometric parameters, telemetry information, and sector times for a specified year. It is recommended that the track characteristic data and fastest lap time data use the same year (e.g., extract 2025 track characteristics if analyzing 2025 lap times). Minor year differences (adjacent years) generally do not affect the analysis of overall trends.
+> **Important**: Use the same year for both track characteristics and lap time data (e.g., 2025 data for 2025 analysis). Minor year differences (adjacent years) generally don't affect overall trend analysis.
 
-1.2 fastF1 Library Usage Instructions
+### 1.2 fastF1 Library Usage
 
-1.2.1 Installation & Update
+#### Installation
 
-# Mandatory libraries (version locked to avoid compatibility issues)
+```bash
+# Mandatory libraries (version locked for compatibility)
 pip install --upgrade fastf1>=2.3.0 pandas>=2.0.0 scikit-learn>=1.3.0 matplotlib>=3.7.0
-
-1.2.2 Core Usage Rules
-
-- Data Loading: Load data via `fastf1.get_session(year, circuit_name, "Q")` (where "Q" stands for Qualifying, which has no traffic interference and cleaner data). The `year` parameter is recommended to match the year of the fastest lap time data.
-
-- Cache Configuration: Internet access is required for the first run to download data (approximately 50-100MB per track). It is recommended to enable caching to speed up subsequent use:
-        fastf1.Cache.enable_cache("./fastf1_cache")  # Specify local cache path
-
-- Key APIs:Load complete data: `session.load()` (mandatory for accessing telemetry and track information)
-
-- Track basic information: `session.circuit_length` (length), `session.circuit_orientation` (direction)
-
-- Sector boundaries: `session.get_circuit_info().sectors` (obtain start/end distances of Sector 1/2/3)
-
-- Telemetry data: `lap.get_car_data().add_distance()` (per-meter speed, distance, etc. for a single lap)
-
-2. Data Layer: Unified Track Characteristic Extraction Specifications
-
-2.1 Overall Track Characteristics (10 Fields)
-
-All fields are extracted based on data of the specified year from the `fastF1` library, with unified definitions and logic:
-
-Field Name
-
-Definition & Calculation Method
-
-Unit
-
-Extraction Logic from Library
-
-`circuit_name`
-
-English name of the circuit (e.g., `Hungary`, `Belgium`, `Netherlands`)
-
--
-
-Direct input or obtained from session
-
-`length_km`
-
-Lap length (`session.circuit_length / 1000`, converted to km)
-
-km
-
-`session.circuit_length` (official data of the specified year)
-
-`orientation`
-
-Track direction (`1`=anticlockwise, `0`=clockwise)
-
-Boolean
-
-Judged via `session.circuit_orientation`
-
-`slow_corner_ratio`
-
-Ratio of slow corners (length of sections with speed < 160km/h ÷ total lap length × 100%)
-
-%
-
-Calculated based on telemetry data of the specified year
-
-`fast_corner_ratio`
-
-Ratio of fast corners (length of sections with speed ≥ 240km/h ÷ total lap length × 100%)
-
-%
-
-Calculated based on telemetry data of the specified year
-
-`straight_ratio`
-
-Ratio of straights (length of sections with speed ≥ 280km/h ÷ total lap length × 100%)
-
-%
-
-Calculated based on telemetry data of the specified year
-
-`total_corners`
-
-Total number of corners (deduplicated count of track corner numbers)
-
-Count
-
-`session.get_circuit_info().corners["Number"].nunique()`
-
-`drs_zone_count`
-
-Number of DRS zones
-
-Count
-
-`len(session.drs_zones)` (configuration of the specified year)
-
-`drs_total_length_m`
-
-Total length of all DRS zones (sum of `end - start` for each zone)
-
-m
-
-Calculated by iterating through `session.drs_zones`
-
-`fastest_lap_seconds`
-
-Fastest lap time (converted to seconds, 3 decimal places)
-
-s
-
-Fastest lap data from qualifying of the specified year
-
-2.2 Sector-Wise Track Characteristics (6 Fields)
-
-Extracted for `Sector 1`, `Sector 2`, and `Sector 3` respectively, based on data of the specified year:
-
-Field Name
-
-Definition & Calculation Method
-
-Unit
-
-Extraction Logic from Library
-
-`circuit_name`
-
-English name of the circuit (consistent with overall characteristics for data association)
-
--
-
-Same as overall characteristics
-
-`sector_number`
-
-Sector number (`1`/`2`/`3`)
-
-Integer
-
-`session.get_circuit_info().sectors["Number"]`
-
-`sector_length_km`
-
-Sector length (end distance - start distance, converted to km)
-
-km
-
-Calculated based on sector boundaries of the specified year
-
-`sector_straight_ratio`
-
-Ratio of straights in the sector (proportion of sections with speed ≥ 280km/h)
-
-%
-
-Filter telemetry data of the specified year by sector boundaries
-
-`sector_slow_corner_ratio`
-
-Ratio of slow corners in the sector (proportion of sections with speed < 160km/h)
-
-%
-
-Filter telemetry data of the specified year by sector boundaries
-
-`sector_time_seconds`
-
-Fastest time for the sector (converted to seconds, 3 decimal places)
-
-s
-
-Sector data of the specified year
-
-2.3 Standardized Extraction Code Template
-
+```
+
+#### Core Usage Rules
+
+- **Data Loading**: Use `fastf1.get_session(year, circuit_name, "Q")` where `"Q"` = Qualifying (cleaner data, no traffic interference)
+- **Cache Configuration**: Enable caching to speed up subsequent runs (first run downloads ~50-100MB per track):
+  ```python
+  fastf1.Cache.enable_cache("./fastf1_cache")
+  ```
+
+#### Key APIs
+
+| Function | Purpose |
+|----------|---------|
+| `session.load()` | Load complete session data (mandatory) |
+| `session.circuit_length` | Track length in meters |
+| `session.circuit_orientation` | Track direction (clockwise/anticlockwise) |
+| `session.get_circuit_info().sectors` | Sector boundary information |
+| `lap.get_car_data().add_distance()` | Per-meter telemetry data |
+
+---
+
+## 📊 2. Data Layer: Unified Track Characteristic Extraction
+
+### 2.1 Overall Track Characteristics (10 Fields)
+
+| Field Name | Definition & Calculation | Unit | Source |
+|------------|-------------------------|------|--------|
+| `circuit_name` | English name (e.g., Hungary, Belgium) | - | Session metadata |
+| `length_km` | Lap length (`circuit_length / 1000`) | km | `session.circuit_length` |
+| `orientation` | Track direction (1=anticlockwise, 0=clockwise) | Boolean | `session.circuit_orientation` |
+| `slow_corner_ratio` | % of sections with speed < 160 km/h | % | Telemetry calculation |
+| `fast_corner_ratio` | % of sections with speed ≥ 240 km/h | % | Telemetry calculation |
+| `straight_ratio` | % of sections with speed ≥ 280 km/h | % | Telemetry calculation |
+| `total_corners` | Total number of corners | Count | `corners["Number"].nunique()` |
+| `drs_zone_count` | Number of DRS zones | Count | `len(session.drs_zones)` |
+| `drs_total_length_m` | Total DRS zone length | m | Sum of zone lengths |
+| `fastest_lap_seconds` | Fastest qualifying lap time | s | Qualifying data (3 decimals) |
+
+### 2.2 Sector-Wise Track Characteristics (6 Fields)
+
+Extracted for Sector 1, 2, and 3 individually:
+
+| Field Name | Definition & Calculation | Unit | Source |
+|------------|-------------------------|------|--------|
+| `circuit_name` | Circuit identifier | - | Same as overall |
+| `sector_number` | Sector ID (1/2/3) | Integer | `sectors["Number"]` |
+| `sector_length_km` | Sector length (end - start) | km | Sector boundaries |
+| `sector_straight_ratio` | % of sector with speed ≥ 280 km/h | % | Filtered telemetry |
+| `sector_slow_corner_ratio` | % of sector with speed < 160 km/h | % | Filtered telemetry |
+| `sector_time_seconds` | Fastest sector time | s | Sector timing data (3 decimals) |
+
+### 2.3 Standardized Extraction Code
+
+```python
 import fastf1
 import pandas as pd
 
@@ -227,7 +117,7 @@ def extract_overall_features(year, circuit_name):
         "total_corners": session.get_circuit_info().corners["Number"].nunique(),
         "drs_zone_count": len(session.drs_zones),
         "drs_total_length_m": sum(zone["end"] - zone["start"] for zone in session.drs_zones),
-        "fastest_lap_seconds": round(fastest_lap["LapTime"].total_seconds, 3)
+        "fastest_lap_seconds": round(fastest_lap["LapTime"].total_seconds(), 3)
     }])
 
 def extract_sector_features(year, circuit_name):
@@ -252,7 +142,7 @@ def extract_sector_features(year, circuit_name):
         sec_slow_corner_dist = sec_telemetry[sec_telemetry["Speed"] < 160]["Distance"].diff().sum()
         
         sec_time_col = f"Sector{sec_num}Time"
-        sec_time = fastest_lap[sec_time_col].total_seconds if not pd.isna(fastest_lap[sec_time_col]) else 0
+        sec_time = fastest_lap[sec_time_col].total_seconds() if not pd.isna(fastest_lap[sec_time_col]) else 0
         
         sector_features.append({
             "circuit_name": circuit_name,
@@ -264,119 +154,156 @@ def extract_sector_features(year, circuit_name):
         })
     return pd.DataFrame(sector_features)
 
-# Example: Extract data (fill in the year corresponding to lap time data, e.g., 2025)
+# Example: Extract data
 if __name__ == "__main__":
-    year = 2025  # Match the year of the fastest lap time data
-    circuit = "Hungary"  # Replace with the responsible circuit name
+    year = 2025  # Match the year of lap time data
+    circuit = "Hungary"  # Replace with target circuit
     
     # Extract overall characteristics
     overall_df = extract_overall_features(year, circuit)
     overall_df.to_csv(f"{circuit}_overall_features.csv", index=False, encoding="UTF-8")
     
-    # Extract sector-wise characteristics and calculate derived features
+    # Extract sector characteristics and calculate derived features
     sector_df = extract_sector_features(year, circuit)
     total_lap_time = overall_df["fastest_lap_seconds"].iloc[0]
     sector_df["sector_time_ratio"] = round(sector_df["sector_time_seconds"] / total_lap_time * 100, 2)
     
     sector_df.to_csv(f"{circuit}_sector_features.csv", index=False, encoding="UTF-8")
     
-    print("Data extraction completed! Output files:")
-    print(f"{circuit}_overall_features.csv (Overall Characteristics)")
-    print(f"{circuit}_sector_features.csv (Sector-Wise Characteristics, including derived features)")
+    print("✅ Data extraction completed!")
+    print(f"📄 {circuit}_overall_features.csv")
+    print(f"📄 {circuit}_sector_features.csv")
+```
 
-3. Feature Layer: Unified Specifications
+---
 
-3.1 Derived Feature Construction (Mandatory)
+## 🔬 3. Feature Engineering Specifications
 
-- Sector Time Ratio: `sector_time_ratio = (sector_time_seconds / fastest_lap_seconds) * 100` (2 decimal places), which reflects the weight of each sector in the total lap time.
+### 3.1 Derived Feature Construction (Mandatory)
 
-3.2 Data Output Requirements
+**Sector Time Ratio**: Reflects each sector's weight in total lap time
 
-- Overall Characteristics File: `{circuit_name}_overall_features.csv` (e.g., `Hungary_overall_features.csv`)
+```python
+sector_time_ratio = (sector_time_seconds / fastest_lap_seconds) × 100
+```
 
-- Sector-Wise Characteristics File: `{circuit_name}_sector_features.csv` (e.g., `Hungary_sector_features.csv`)
+*Precision: 2 decimal places*
 
-- Format Requirements: UTF-8 encoding, strict adherence to the field order in the above tables, and unified numerical precision (2 decimal places for ratios, 3 decimal places for length/time).
+### 3.2 Data Output Requirements
 
-- Data Validation: Ensure no missing values (mark special cases if any) and correct calculation of `sector_time_ratio`.
+#### File Naming Convention
+- **Overall**: `{circuit_name}_overall_features.csv` (e.g., `Hungary_overall_features.csv`)
+- **Sector**: `{circuit_name}_sector_features.csv` (e.g., `Hungary_sector_features.csv`)
 
-4. Key Milestones & Phase Plan
+#### Format Requirements
+- ✅ UTF-8 encoding
+- ✅ Strict field order (as per tables above)
+- ✅ Unified precision:
+  - Ratios: 2 decimal places
+  - Length/Time: 3 decimal places
+- ✅ No missing values (document exceptions if unavoidable)
+- ✅ Validated `sector_time_ratio` calculations
 
-Phase
+---
 
-Time Range
+## 📅 4. Project Timeline & Phases
 
-Core Tasks
+| Phase | Timeline | Core Tasks | Deliverables |
+|-------|----------|------------|--------------|
+| **Data Extraction** | Now - Nov 25 | Extract all circuit features, calculate derived features, merge & validate data | Individual + merged CSV files |
+| **Slides Preparation** | Nov 20 - 25 | Create project introduction covering objectives, data specs, initial progress | **Nov 26: Project Slides** |
+| **Modeling & Analysis** | Nov 26 - Dec 3 | Data standardization, train models (Linear Regression + Random Forest), feature importance analysis, visualizations | Modeling code, metrics, charts |
+| **Report Writing** | Dec 4 - 9 | Write complete analysis report with methodology, results, discussion, conclusions | **Dec 10: Analysis Report** |
+| **Code & Video** | Dec 10 - 22 | Organize commented code with dependencies; create demo video | **Dec 23: Code + Video** |
 
-Deliverables
+---
 
-Data Extraction Phase
+## 📦 5. Deliverables Requirements
 
-Immediate - November 25
+### 5.1 November 26: Project Introduction Slides
 
-Complete characteristic extraction and derived feature calculation for all circuits; data merging and validation
+**Core Content:**
+1. Project Background
+2. Research Objectives
+3. Data Specifications (field definitions + extraction logic)
+4. Initial Progress (data extraction examples)
+5. Next Steps
 
-Overall/sector CSV files for each circuit; merged data file
+**Focus**: Demonstrate project feasibility and data uniformity (modeling results not required yet)
 
-Slides Preparation Phase
+### 5.2 December 10: Analysis Report
 
-November 20 - 25
+**Structure:**
+1. Introduction
+2. Research Methodology
+3. Data Overview
+4. Experimental Results
+5. Analysis & Discussion
+6. Conclusion & Outlook
 
-Create project introduction Slides, focusing on "project objectives, data specifications, and initial progress"
+**Requirements**: 
+- Clear logical flow
+- Data-supported conclusions
+- Key findings (e.g., "magnitude of specific characteristic's impact on lap time")
 
-November 26 submission: Project introduction Slides
+### 5.3 December 23: Code Package + Demo Video
 
-Modeling & Analysis Phase
+**Code Requirements:**
+- Complete pipeline: data extraction → feature engineering → modeling
+- `requirements.txt` with library versions
+- Comprehensive code comments
+- Organized file structure
 
-November 26 - December 3
+**Video Requirements:**
+- Duration: 3-5 minutes
+- Content: Operation demonstration + key conclusions
+- Format: MP4
 
-Data standardization, model training (Linear Regression + Random Forest), feature importance analysis, visualization chart production
+---
 
-Modeling code, model metrics, visualization charts
+## 🤝 6. Collaboration Guidelines
 
-Report Writing Phase
+### Repository Management
+- **Shared Repository**: [Insert project repository URL]
+- **File Naming**: Unified conventions to prevent overwrites
+- **Status Tracking**: Mark completion status after submissions
 
-December 4 - 9
+### Communication
+- Regular progress updates
+- Immediate issue reporting (data extraction/modeling challenges)
+- Ensure milestone alignment
 
-Write complete analysis report, including introduction, methodology, results, discussion and conclusion
+### Version Control
+- Clear commit messages
+- Branch strategy for feature development
+- Code review before merging
 
-December 10 submission: Complete analysis report
+---
 
-Code & Video Preparation Phase
+## 📌 Quick Reference
 
-December 10 - 22
+### Speed Classification Thresholds
+- **Slow Corners**: < 160 km/h
+- **Fast Corners**: ≥ 240 km/h
+- **Straights**: ≥ 280 km/h
 
-Organize standardized code (with comments and dependency list); shoot demo video
+### Data Precision Standards
+| Metric Type | Precision |
+|-------------|-----------|
+| Ratios (%) | 2 decimals |
+| Length (km/m) | 3 decimals |
+| Time (s) | 3 decimals |
 
-December 23 submission: Code package, demo video
+### Required Libraries
+```
+fastf1 >= 2.3.0
+pandas >= 2.0.0
+scikit-learn >= 1.3.0
+matplotlib >= 3.7.0
+```
 
-5. Brief Requirements for Core Deliverables
+---
 
-5.1 November 26: Slides
-
-- Core Content: Project Background → Research Objectives → Data Specifications (field definitions + extraction logic) → Initial Progress (data extraction examples) → Next Plan
-
-- Focus: Highlight project feasibility and data uniformity; complete modeling results are not required.
-
-5.2 December 10: Analysis Report
-
-- Basic Structure: Introduction → Research Methodology → Data Overview → Experimental Results → Analysis & Discussion → Conclusion & Outlook
-
-- Requirements: Clear logic, sufficient data support, and inclusion of key conclusions (e.g., "impact magnitude of a certain characteristic on lap time").
-
-5.3 December 23: Code & Video
-
-- Code: Complete code for data extraction, feature engineering, and modeling; `requirements.txt` (library versions) + comment explanations must be included in the root directory.
-
-- Video: 3-5 minutes, covering operation demonstration + key conclusion explanation, in MP4 format.
-
-6. Collaboration Instructions
-
-- Shared Repository URL: [Fill in the project shared repository link]
-
-- Communication Mechanism: Regular progress updates; timely communication of issues encountered in data extraction/modeling to ensure overall progress aligns with milestones.
-
-- Version Specification: Unified naming for all files to avoid overwriting; mark completion status after submission.
-
-Division of labor details can be supplemented based on actual progress. Currently, focus on completing core tasks in accordance with the milestones to ensure the quality of deliverables.
-
+**Last Updated**: November 2025  
+**Project Type**: F1 Data Analysis & Machine Learning  
+**License**: [Specify if needed]
