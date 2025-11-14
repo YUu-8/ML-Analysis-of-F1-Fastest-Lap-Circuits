@@ -13,6 +13,24 @@ This project quantitatively analyzes the impact of F1 track characteristics on f
 | **December 23** | Code Package + Demo Video |
 
 ---
+## 👥 Team & Division of Labor
+
+### Data & Feature Engineering Phase
+
+| Team Member | Responsibility |
+|-------------|----------------|
+| **Yuchun Wang** | Hungary circuit - data extraction & feature processing |
+| **Elise Fouillet** | Belgium circuit - data extraction & feature processing |
+| **Jinxin Zhou** | Netherlands circuit - data extraction & feature processing |
+
+### Collaborative Phase
+
+All team members will jointly complete:
+- Data merging & validation
+- Model training & optimization
+- Results analysis & visualization
+- Report & presentation preparation
+```
 
 ## 🔧 1. Core Description: Data Source & Tool Dependencies
 
@@ -304,6 +322,6 @@ matplotlib >= 3.7.0
 
 ---
 
-**Last Updated**: November 2025  
+**Last Updated**: 14/11/2025
 **Project Type**: F1 Data Analysis & Machine Learning  
-**License**: [Specify if needed]
+
