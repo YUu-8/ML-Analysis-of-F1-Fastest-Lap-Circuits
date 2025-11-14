@@ -30,7 +30,7 @@ All team members will jointly complete:
 - Model training & optimization
 - Results analysis & visualization
 - Report & presentation preparation
-```
+  
 
 ## 🔧 1. Core Description: Data Source & Tool Dependencies
 
@@ -279,39 +279,6 @@ sector_time_ratio = (sector_time_seconds / fastest_lap_seconds) × 100
 
 ---
 
-## 🤝 6. Collaboration Guidelines
-
-### Repository Management
-- **Shared Repository**: [Insert project repository URL]
-- **File Naming**: Unified conventions to prevent overwrites
-- **Status Tracking**: Mark completion status after submissions
-
-### Communication
-- Regular progress updates
-- Immediate issue reporting (data extraction/modeling challenges)
-- Ensure milestone alignment
-
-### Version Control
-- Clear commit messages
-- Branch strategy for feature development
-- Code review before merging
-
----
-
-## 📌 Quick Reference
-
-### Speed Classification Thresholds
-- **Slow Corners**: < 160 km/h
-- **Fast Corners**: ≥ 240 km/h
-- **Straights**: ≥ 280 km/h
-
-### Data Precision Standards
-| Metric Type | Precision |
-|-------------|-----------|
-| Ratios (%) | 2 decimals |
-| Length (km/m) | 3 decimals |
-| Time (s) | 3 decimals |
-
 ### Required Libraries
 ```
 fastf1 >= 2.3.0
@@ -324,4 +291,5 @@ matplotlib >= 3.7.0
 
 **Last Updated**: 14/11/2025
 **Project Type**: F1 Data Analysis & Machine Learning  
+
 
