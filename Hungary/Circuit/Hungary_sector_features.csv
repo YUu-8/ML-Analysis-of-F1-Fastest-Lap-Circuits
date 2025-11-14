@@ -1,0 +1,4 @@
+circuit_name,sector_number,sector_length_km,sector_straight_ratio,sector_slow_corner_ratio,sector_time_seconds,sector_time_ratio
+Hungary,1,0,0,0,27.606,36.7
+Hungary,2,0,0,0,26.382,35.07
+Hungary,3,0,0,0,21.239,28.23
