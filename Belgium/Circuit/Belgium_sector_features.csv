@@ -1,4 +1,4 @@
-year,circuit_name,sector_number,sector_time_seconds,sector_time_ratio
-2024,Belgium,1,31.998,28.28
-2024,Belgium,2,50.837,44.93
-2024,Belgium,3,30.324,26.8
+circuit_name,sector_number,sector_length_km,sector_straight_ratio,sector_slow_corner_ratio,sector_time_seconds,sector_time_ratio
+Belgium,1,2.242,78.11,15.02,31.998,28.28
+Belgium,2,2.796,39.68,8.04,50.837,44.93
+Belgium,3,1.921,68.49,25.21,30.324,26.8

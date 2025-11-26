@@ -1,2 +1,2 @@
-circuit_name,year,fastest_lap_driver_number,fastest_lap_driver_name,fastest_lap_constructor,fastest_lap_seconds
-Netherlands,2024,4,Lando Norris,McLaren Mercedes,73.817
+circuit_name,Track Length (km),Corners,Global Straight Ratio,Event Year
+Netherlands,4.238,14,55.08,2024
