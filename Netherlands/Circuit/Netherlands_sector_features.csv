@@ -1,4 +1,4 @@
-sector,sector_time_seconds,sector_time_ratio,circuit_name,year
-1,24.794,33.59,Netherlands,2024
-2,24.634,33.37,Netherlands,2024
-3,24.389,33.04,Netherlands,2024
+circuit_name,sector_number,sector_length_km,sector_straight_ratio,sector_slow_corner_ratio,sector_time_seconds,sector_time_ratio
+Netherlands,1,1.487,61.54,4.95,23.824,34.19
+Netherlands,2,1.438,43.01,15.05,24.819,35.62
+Netherlands,3,1.312,61.59,15.85,21.03,30.18
