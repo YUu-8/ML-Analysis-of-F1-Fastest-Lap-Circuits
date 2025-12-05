@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import os
+import joblib
 
 # Settings
 OUTPUT_FOLDER = 'visual'
@@ -15,7 +16,7 @@ sns.set(style="whitegrid", context="talk")
 plt.rcParams['axes.unicode_minus'] = False 
 
 # Load data
-df = pd.read_csv('f1_grand_dataset_full.csv')
+df = pd.read_csv('E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\Data_Merge\\f1_grand_dataset_full.csv')
 
 # Print column names
 print("=== Data Columns List ===")
@@ -84,3 +85,5 @@ save_path = f"{OUTPUT_FOLDER}/Viz_5_Feature_Impact.png"
 plt.savefig(save_path, dpi=300)
 print(f"Success: Analysis complete! Feature importance plot saved: {save_path}")
 print(f"New R² (for speed): {r2:.3f}")
+model_save_path = 'E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\model\\baseline.pkl'
+joblib.dump(model, model_save_path)

@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
 import warnings
 warnings.filterwarnings('ignore')
+import joblib
 
 # Configuration
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -18,7 +19,7 @@ print("Analyse XGBOOST F1")
 print("\n")
 
 # Loading data
-df = pd.read_csv('f1_grand_dataset_full.csv')
+df = pd.read_csv('E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\Data_Merge\\f1_grand_dataset_full.csv')
 
 
 # Principales features
@@ -276,3 +277,5 @@ else:
 
 
 print(f"XGBOOST analysis finished")
+model_save_path = 'E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\model\\best_xgboost_model.pkl'
+joblib.dump(model, model_save_path)

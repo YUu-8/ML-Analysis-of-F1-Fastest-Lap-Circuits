@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import joblib
 
 # ============================================================================
 # Configuration
@@ -181,6 +182,9 @@ def train_random_forest(X_train, X_test, y_train, y_test, feature_names):
         'feature_names': feature_names,
         'feature_importance': rf_model.feature_importances_
     }
+        
+    model_save_path = 'E:\Machine learning\ML-Analysis-of-F1-Fatest-Lap-Circuits\model\RandomForest_model.pkl'
+    joblib.dump(rf_model, model_save_path)
     
     return metrics
 
@@ -293,14 +297,10 @@ def plot_feature_importance(metrics):
     
 
 def plot_diagnostic_panel(rf_metrics, baseline_metrics, y_test, feature_names, X_test):
-    """
-    综合诊断面板：特征重要性、误差分布、预测对比、残差分析
-    """
     print("\nGenerating diagnostic_panel.png ...")
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
     fig.suptitle('Random Forest Diagnostic Panel', fontsize=18, fontweight='bold', y=0.98)
 
-    # 1. 特征重要性
     importance_df = pd.DataFrame({
         'Feature': feature_names,
         'Importance': rf_metrics['feature_importance']
@@ -314,7 +314,6 @@ def plot_diagnostic_panel(rf_metrics, baseline_metrics, y_test, feature_names, X
         ax.text(v + 0.002, i, f'{v:.3f}', va='center', fontsize=10)
     ax.grid(axis='x', alpha=0.3)
 
-    # 2. 误差分布
     errors = rf_metrics['y_test_pred'] - y_test
     ax = axes[0, 1]
     sns.histplot(errors, bins=10, kde=True, color='teal', edgecolor='black', ax=ax)
@@ -323,7 +322,6 @@ def plot_diagnostic_panel(rf_metrics, baseline_metrics, y_test, feature_names, X
     ax.set_ylabel('Frequency')
     ax.grid(alpha=0.3)
 
-    # 3. 预测对比
     ax = axes[1, 0]
     ax.scatter(y_test, rf_metrics['y_test_pred'], alpha=0.7, label='Random Forest', s=60)
     ax.scatter(y_test, baseline_metrics['y_test_pred'], alpha=0.7, label='Linear Regression', s=60)
@@ -336,7 +334,6 @@ def plot_diagnostic_panel(rf_metrics, baseline_metrics, y_test, feature_names, X
     ax.legend()
     ax.grid(alpha=0.3)
 
-    # 4. 残差与最重要特征
     importances = rf_metrics['feature_importance']
     top_idx = np.argsort(importances)[-1]
     top_feat = feature_names[top_idx]
@@ -356,12 +353,8 @@ def plot_diagnostic_panel(rf_metrics, baseline_metrics, y_test, feature_names, X
     print(f"✓ Saved: {fname}")
 
 def plot_trend_panel(X_train, y_train, X_test, y_test, feature_names):
-    """
-    选取最重要的2个特征，展示趋势分析
-    """
     print("\nGenerating trend_panel.png ...")
     importances = [np.std(X_train[feat]) for feat in feature_names]
-    # 这里用标准差选2个变化最大的特征（也可用重要性）
     top2 = np.argsort(importances)[-2:][::-1]
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     for i, idx in enumerate(top2):
@@ -385,9 +378,6 @@ def plot_trend_panel(X_train, y_train, X_test, y_test, feature_names):
     print(f"✓ Saved: {fname}")
 
 def plot_partial_dependence_panel(rf_model, X_train, feature_names):
-    """
-    只对最重要的2个特征做部分依赖图
-    """
     print("\nGenerating partial_dependence_panel.png ...")
     from sklearn.inspection import PartialDependenceDisplay
     importances = rf_model.feature_importances_
