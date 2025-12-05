@@ -12,43 +12,30 @@ import os
 import time
 
 # ==========================================
-# 0. 设置与路径修复 (Fix)
+# 0. 设置与目录
 # ==========================================
-# 确保文件夹存在
 if not os.path.exists('visual'): os.makedirs('visual')
 if not os.path.exists('model'): os.makedirs('model')
 
 sns.set(style="whitegrid", context="talk")
+plt.rcParams['axes.unicode_minus'] = False 
 
-# 【修复点】 使用 os.path.join 来安全地拼接路径，防止 \f 被误读
-# 或者确保你是在项目根目录下运行
-file_name = 'E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\Data_Merge\\f1_grand_dataset_full.csv '
-file_path = os.path.join(os.getcwd(), file_name)
-
+# ==========================================
+# 1. 准备数据
+# ==========================================
+file_path = 'E:\\Machine learning\\ML-Analysis-of-F1-Fatest-Lap-Circuits\\Data_Merge\\f1_grand_dataset_full.csv'
 if not os.path.exists(file_path):
-    # 如果找不到，尝试直接读取文件名（备用方案）
-    if os.path.exists(file_name):
-        file_path = file_name
-    else:
-        print(f"❌ 错误：找不到 CSV 文件！\n尝试读取路径: {file_path}")
-        print("请确保 'f1_grand_dataset_full.csv' 在当前脚本的同一目录下。")
-        exit()
+    print("❌ 错误：找不到 CSV 文件")
+    exit()
 
 df = pd.read_csv(file_path)
 
-# --- 现场计算 AvgSpeed ---
-# 确保目标变量存在
+# 现场计算 AvgSpeed
 if 'sector_length_km_S1' in df.columns and 'LapTime' in df.columns:
     total_len = df['sector_length_km_S1'] + df['sector_length_km_S2'] + df['sector_length_km_S3']
-    # 防止除以 0
     df['AvgSpeed'] = np.where(df['LapTime'] > 0, total_len / (df['LapTime'] / 3600), 0)
-else:
-    print("❌ 错误：缺少计算 AvgSpeed 所需的列 (分段长度或圈速)。")
-    exit()
 
-# ==========================================
-# 1. 数据准备
-# ==========================================
+# 特征选择
 features = [
     'sector_straight_ratio_S1', 'sector_straight_ratio_S2', 'sector_straight_ratio_S3',
     'sector_slow_corner_ratio_S1', 'sector_slow_corner_ratio_S2',
@@ -56,23 +43,23 @@ features = [
 ]
 valid_cols = [c for c in features if c in df.columns]
 
-# 清洗数据
+# 数据清洗
 data = df[valid_cols + ['AvgSpeed']].dropna()
 data = data[data['AvgSpeed'] > 0]
 
 X = data[valid_cols]
 y = data['AvgSpeed']
 
-# 切分数据 (所有模型统一标准)
+# 切分数据
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-print(f"✅ 数据准备完毕。训练集: {len(X_train)} | 测试集: {len(X_test)}")
+print(f"✅ 数据准备就绪。训练集: {len(X_train)} | 测试集: {len(X_test)}")
 print("="*40)
 
 results = []
 
 # ==========================================
-# 模型 1: 线性回归 (Baseline)
+# 模型 1: Linear Regression (基准)
 # ==========================================
 print("1️⃣  训练 Linear Regression...")
 lr = LinearRegression()
@@ -83,9 +70,11 @@ results.append({
     'R2': r2_score(y_test, y_pred),
     'RMSE': np.sqrt(mean_squared_error(y_test, y_pred))
 })
+# 保存
+joblib.dump(lr, 'model/linear_model.pkl')
 
 # ==========================================
-# 模型 2: 随机森林 (RF)
+# 模型 2: Random Forest (非线性基准)
 # ==========================================
 print("2️⃣  训练 Random Forest...")
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -96,97 +85,79 @@ results.append({
     'R2': r2_score(y_test, y_pred),
     'RMSE': np.sqrt(mean_squared_error(y_test, y_pred))
 })
+# 保存
+joblib.dump(rf, 'model/rf_model.pkl')
 
 # ==========================================
-# 模型 3: XGBoost (默认参数)
+# 模型 3: XGBoost (Grid Search 优化)
 # ==========================================
-print("3️⃣  训练 XGBoost (Default)...")
-xgb_def = xgb.XGBRegressor(random_state=42)
-xgb_def.fit(X_train, y_train)
-y_pred = xgb_def.predict(X_test)
-results.append({
-    'Model': 'XGBoost (Default)',
-    'R2': r2_score(y_test, y_pred),
-    'RMSE': np.sqrt(mean_squared_error(y_test, y_pred))
-})
-
-# ==========================================
-# 模型 4: XGBoost 优化 (Grid Search)
-# ==========================================
-print("\n4️⃣  🚀 开始 XGBoost 网格搜索 (Grid Search)...")
+print("\n3️⃣  🚀 启动 XGBoost 网格搜索 (Grid Search)...")
+print("    (正在尝试不同参数组合，请稍候...)")
 start_time = time.time()
 
-# 定义参数池
+# 定义要搜索的参数网格
 param_grid = {
-    'n_estimators': [100, 200, 300],
-    'learning_rate': [0.01, 0.05, 0.1],
-    'max_depth': [3, 5, 7],
-    'subsample': [0.7, 0.8, 1.0],
-    'colsample_bytree': [0.7, 0.8, 1.0]
+    'n_estimators': [100, 200, 300],     # 树的数量
+    'learning_rate': [0.01, 0.05, 0.1],  # 学习率
+    'max_depth': [3, 5, 7],              # 树的深度
+    'subsample': [0.8, 1.0]              # 样本采样
 }
 
 xgb_model = xgb.XGBRegressor(random_state=42, n_jobs=-1)
 
-# 3折交叉验证
+# 设置 Grid Search
 grid_search = GridSearchCV(estimator=xgb_model, 
                            param_grid=param_grid, 
-                           cv=3, 
-                           scoring='r2', 
+                           cv=3,                 # 3折交叉验证
+                           scoring='r2',         # 以 R2 为优化目标
                            n_jobs=-1, 
                            verbose=1)
 
+# 开始搜索
 grid_search.fit(X_train, y_train)
-
-# 获取最佳模型
-best_xgb = grid_search.best_estimator_
-y_pred_best = best_xgb.predict(X_test)
 
 end_time = time.time()
 print(f"   ✅ 搜索完成！耗时: {end_time - start_time:.1f}s")
-print(f"   🏆 最佳参数: {grid_search.best_params_}")
 
+# 获取并保存最佳模型
+best_xgb = grid_search.best_estimator_
+best_params = grid_search.best_params_
+
+print(f"   🏆 最佳参数组合: {best_params}")
+
+# 预测
+y_pred_best = best_xgb.predict(X_test)
 results.append({
     'Model': 'XGBoost (Optimized)',
     'R2': r2_score(y_test, y_pred_best),
     'RMSE': np.sqrt(mean_squared_error(y_test, y_pred_best))
 })
 
-# ==========================================
-# 5. 保存最佳模型
-# ==========================================
-# 【修复点】使用 os.path.join 处理保存路径
-model_path = os.path.join('model', 'best_xgboost_model.pkl')
-joblib.dump(best_xgb, model_path)
-print(f"\n💾 最强模型已保存至: {model_path}")
+# 保存最佳模型
+joblib.dump(best_xgb, 'model/best_xgboost_model.pkl')
+print("   💾 最优模型已覆盖保存至 model/best_xgboost_model.pkl")
 
 # ==========================================
-# 6. 结果可视化
+# 4. 结果对比与可视化
 # ==========================================
 results_df = pd.DataFrame(results).sort_values(by='R2', ascending=False)
 
-print("\n=== 最终对比结果表 ===")
+print("\n=== 最终对比成绩单 ===")
 print(results_df)
 
 # 画图
 plt.figure(figsize=(10, 6))
-# 颜色逻辑：给最优模型红色，其他蓝色/灰色
-colors = ['#cccccc' if 'Default' in x or 'Linear' in x else '#4c72b0' for x in results_df['Model']]
-if 'XGBoost (Optimized)' in results_df['Model'].values:
-    colors = ['#e84d60' if x == 'XGBoost (Optimized)' else c for x, c in zip(results_df['Model'], colors)]
+colors = ['#e84d60' if 'XGBoost' in x else '#4c72b0' for x in results_df['Model']]
 
 ax = sns.barplot(data=results_df, x='Model', y='R2', palette=colors)
-plt.title('Final Model Comparison (R² Score)', fontsize=16, weight='bold')
-plt.ylim(0.9, 1.0) # 聚焦高分段
+plt.title('Final Model Comparison (After Optimization)', fontsize=16, weight='bold')
+plt.ylim(0.9, 1.0)
 plt.ylabel('R² Score')
 plt.xlabel('')
-plt.xticks(rotation=15)
 
-# 标数值
 for i, v in enumerate(results_df['R2']):
     ax.text(i, v + 0.002, f"{v:.4f}", ha='center', fontsize=12, weight='bold')
 
-# 保存图片
-save_path = os.path.join('visual', 'Viz_6_Model_Comparison.png')
 plt.tight_layout()
-plt.savefig(save_path, dpi=300)
-print(f"📊 对比图已保存至: {save_path}")
+plt.savefig('visual/Viz_6_Model_Comparison_Optimized.png', dpi=300)
+print("\n📊 对比图已生成: visual/Viz_6_Model_Comparison_Optimized.png")

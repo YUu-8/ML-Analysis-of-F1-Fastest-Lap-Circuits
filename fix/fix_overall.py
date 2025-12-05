@@ -67,4 +67,4 @@ def generate_overall_features(task):
 if __name__ == "__main__":
     for task in tasks:
         generate_overall_features(task)
-    print("\nAll Overall files generated successfully! Please re-run Merge_Clean.py")
+    print("\nAll Overall files generated successfully! Please re-run Merge.py")
