@@ -16,17 +16,18 @@ Unlike traditional analyses that focus on driver skill, this project isolates **
 
 ## 📂 Repository Structure & Guide
 
-This repository contains the full data pipeline. Here is how the code is organized:
+This repository contains the full data pipeline. Here is the technical breakdown of the modules:
 
 ### 1. Main Execution
 * `Optimization_and_Comparison.py`: **(Entry Point)** The primary script. It loads the final processed data, runs the GridSearch for model optimization (Linear, RF, XGBoost), and generates the final metrics.
 
-### 2. Engineering & Fixes (Critical Modules)
-* **`fix/`**: **(Key Technical Module)**
-    * This directory contains the specific scripts used to resolve **OS Compatibility issues** (Windows vs. Linux pathing) and initial data alignment errors.
-    * It serves as the "sandbox" where we engineered the solutions for cross-platform stability before integrating them into the main pipeline.
+### 2. Core Engineering Modules
+* **`fix/`**: **(Data Unification Engine)**
+    * **Crucial Module:** This directory contains the heavy-lifting code for **unifying our hybrid data sources**.
+    * It implements the logic to merge the structured Kaggle dataset with high-frequency FastF1 telemetry.
+    * It handles the complex tasks of timestamp synchronization, data cleaning, and resolving OS-path compatibility issues.
 * `Data_Merge/`:
-    * Contains the logic for the **Hybrid Data Strategy**. It handles the synchronization of Kaggle CSV data with FastF1 API telemetry.
+    * Helper scripts for organizing file locations and managing the directory structure for the merged datasets.
 
 ### 3. Data & Artifacts
 * `Belgium/`, `Hungary/`, `Netherlands/`: Specific data containers for each Grand Prix.
@@ -39,18 +40,14 @@ This repository contains the full data pipeline. Here is how the code is organiz
 
 We faced significant engineering challenges in integrating different data standards. Here is how the code addresses them:
 
-### 1. The "Fix" for OS Compatibility
-Early iterations of the project failed on Windows environments due to hardcoded path separators (`\` vs `/`).
-* **The Solution (Found in `fix/`):** We developed a path-handling routine using `os.path.join()`. This ensures the project is fully **OS-Agnostic** and runs robustly on Windows, macOS, and Linux without manual adjustment.
+### 1. The Data Fusion Pipeline (Located in `fix/`)
+We utilized a **Hybrid Data Strategy**, combining static CSVs (Kaggle) with live API streams (FastF1).
+* **The Challenge:** The data sources had no common key and mismatched timestamps.
+* **The Solution:** The scripts inside `fix/` implement **Fuzzy Matching algorithms** to align lap data and use **Linear Interpolation** to fill gaps in telemetry. This creates the unified "Master Dataset" used for training.
 
-### 2. The Data Fusion Pipeline
-We utilized a **Hybrid Data Strategy** combining:
-* **Kaggle Dataset:** Structured sector data.
-* **FastF1 API:** Live telemetry streams.
-
-**The Solution:**
-* Implemented **Fuzzy Matching algorithms** to align lap data between the static CSVs and the live API stream.
-* Used **Linear Interpolation** to fill gaps in telemetry data, creating a unified "Master Dataset".
+### 2. Cross-Platform Compatibility
+Early iterations failed on Windows due to path separator issues.
+* **The Solution:** The code in `fix/` standardizes path handling using `os.path.join()`, making the entire pipeline **OS-Agnostic** (robust on Windows, macOS, and Linux).
 
 ---
 
@@ -74,14 +71,6 @@ This project provides real-world value to F1 engineering teams:
 
 1.  **Physics Baseline:** It calculates a theoretical speed limit based on geometry. If a driver is slower than this baseline, they are underperforming.
 2.  **Aero Strategy:** Helps engineers decide between **High Downforce** vs. **Low Drag** setups by predicting the track's theoretical average speed profile.
-
----
-
-## 👥 Contributors
-
-* **Yuchun Wang** - *Project Lead / Data Engineering / Conclusion*
-* [Teammate Name] - *Model Development*
-* [Teammate Name] - *Visualization*
 
 ---
 *Created for the Data Science & Machine Learning Project.*
