@@ -16,21 +16,22 @@ Unlike traditional analyses that focus on driver skill, this project isolates **
 
 ## 📂 Repository Structure & Guide
 
-Below is a guide to navigating the codebase. While the repository contains various experimental folders, here are the core modules:
+This repository contains the full data pipeline. Here is how the code is organized:
 
-### 1. The Core Script
-* `Optimization_and_Comparison.py`: **(Start Here)** This is the main execution script. It loads the processed data, runs the GridSearch for model optimization (Linear, RF, XGBoost), and generates the performance comparison metrics.
+### 1. Main Execution
+* `Optimization_and_Comparison.py`: **(Entry Point)** The primary script. It loads the final processed data, runs the GridSearch for model optimization (Linear, RF, XGBoost), and generates the final metrics.
 
-### 2. Data Engineering & Processing
-* `Data_Merge/`: **(Key Engineering Module)** Contains the logic for the **Hybrid Data Strategy**.
-    * It handles the fusion of Kaggle CSV data (sector times) with FastF1 API data (telemetry).
-    * Includes the synchronization logic to align mismatched timestamps.
-* `Belgium/`, `Hungary/`, `Netherlands/`: These directories contain the raw and intermediate data specific to each Grand Prix analyzed in this project.
+### 2. Engineering & Fixes (Critical Modules)
+* **`fix/`**: **(Key Technical Module)**
+    * This directory contains the specific scripts used to resolve **OS Compatibility issues** (Windows vs. Linux pathing) and initial data alignment errors.
+    * It serves as the "sandbox" where we engineered the solutions for cross-platform stability before integrating them into the main pipeline.
+* `Data_Merge/`:
+    * Contains the logic for the **Hybrid Data Strategy**. It handles the synchronization of Kaggle CSV data with FastF1 API telemetry.
 
-### 3. Artifacts & Outputs
-* `model/`: Stores the trained `.pkl` model files (Linear Regression, XGBoost, etc.).
-* `visual/`: Contains generated output plots, including the Correlation Heatmap and Model Comparison charts.
-* `fastf1_cache/`: Caching directory for the FastF1 API to speed up data loading.
+### 3. Data & Artifacts
+* `Belgium/`, `Hungary/`, `Netherlands/`: Specific data containers for each Grand Prix.
+* `model/`: Stores the trained `.pkl` model files.
+* `visual/`: Output directory for generated plots and heatmaps.
 
 ---
 
@@ -38,21 +39,18 @@ Below is a guide to navigating the codebase. While the repository contains vario
 
 We faced significant engineering challenges in integrating different data standards. Here is how the code addresses them:
 
-### 🔄 The Data Fusion Pipeline (Located in `Data_Merge/`)
-We utilized a **Hybrid Data Strategy** combining:
-1.  **Kaggle Dataset:** Structured sector data (Belgium, Hungary, Dutch GPs).
-2.  **FastF1 API:** Live telemetry streams (Speed, Throttle, Gear).
+### 1. The "Fix" for OS Compatibility
+Early iterations of the project failed on Windows environments due to hardcoded path separators (`\` vs `/`).
+* **The Solution (Found in `fix/`):** We developed a path-handling routine using `os.path.join()`. This ensures the project is fully **OS-Agnostic** and runs robustly on Windows, macOS, and Linux without manual adjustment.
 
-**The Challenge:** The data sources had no common key and mismatched timestamps.
+### 2. The Data Fusion Pipeline
+We utilized a **Hybrid Data Strategy** combining:
+* **Kaggle Dataset:** Structured sector data.
+* **FastF1 API:** Live telemetry streams.
+
 **The Solution:**
 * Implemented **Fuzzy Matching algorithms** to align lap data between the static CSVs and the live API stream.
-* Used **Linear Interpolation** to fill gaps in telemetry data, creating a unified "Master Dataset" for training.
-
-### 💻 OS-Agnostic Path Handling
-Early iterations failed on Windows due to path separator issues (`\` vs `/`).
-**The Fix:**
-* The codebase (`Optimization_and_Comparison.py` and data loaders) was refactored to use `os.path.join()`.
-* This ensures the project is fully compatible with **Windows, macOS, and Linux** environments without manual path adjustment.
+* Used **Linear Interpolation** to fill gaps in telemetry data, creating a unified "Master Dataset".
 
 ---
 
@@ -70,18 +68,12 @@ We reformulated our target variable to **Average Speed**.
 
 ---
 
-## 📊 Models & Results
+## 🚀 Utility: The "Performance Calculator"
 
-We benchmarked three models. The results validated **Occam's Razor**:
+This project provides real-world value to F1 engineering teams:
 
-| Model | R² Score | RMSE | Key Takeaway |
-| :--- | :--- | :--- | :--- |
-| **Linear Regression** | **0.972** | **Low** | **Best Performance** |
-| Random Forest | 0.968 | Medium | Good, but overfitting risk |
-| XGBoost (Optimized) | 0.971 | Low | High accuracy, complex |
-
-**Conclusion: Linearity Dominates.**
-The simple Linear Regression performed on par with complex ensemble models. This proves that with high-quality feature engineering (e.g., precise Straight Ratios), the relationship between Track Geometry and Speed is fundamentally linear.
+1.  **Physics Baseline:** It calculates a theoretical speed limit based on geometry. If a driver is slower than this baseline, they are underperforming.
+2.  **Aero Strategy:** Helps engineers decide between **High Downforce** vs. **Low Drag** setups by predicting the track's theoretical average speed profile.
 
 ---
 
