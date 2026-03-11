@@ -5,6 +5,12 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Scikit-Learn](https://img.shields.io/badge/Library-Scikit--Learn-orange)](https://scikit-learn.org/)
 [![Dataset](https://img.shields.io/badge/Dataset-Kaggle%20%26%20FastF1-green)]()
+## 🚀 Latest Updates by Yuu
+
+**March 2026** — Added MLOps layer on top of the existing ML pipeline:
+- Deployed model as a REST API using **FastAPI** (`app.py`)
+- Containerized with **Docker** for reproducible deployment
+- Automated testing and container build via **GitHub Actions CI/CD** (`.github/workflows/ci.yml`)
 
 ## 📖 Overview
 
