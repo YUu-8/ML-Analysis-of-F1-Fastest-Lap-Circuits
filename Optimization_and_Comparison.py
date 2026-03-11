@@ -38,6 +38,8 @@ data = df[valid_cols + ['AvgSpeed']].dropna()
 data = data[data['AvgSpeed'] > 0]
 
 X = data[valid_cols]
+print(f"Feature数量: {len(valid_cols)}")
+print(f"Feature列表: {valid_cols}")
 y = data['AvgSpeed']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
