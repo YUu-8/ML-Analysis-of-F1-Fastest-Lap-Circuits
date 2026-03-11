@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 import os
 import time
-
+#create folders if not exist
 if not os.path.exists('visual'): os.makedirs('visual')
 if not os.path.exists('model'): os.makedirs('model')
 
